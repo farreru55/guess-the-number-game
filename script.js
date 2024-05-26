@@ -33,6 +33,9 @@ infi: for (var i = 5; i >= 0; i++) {
         result = "too big";
         alert("your answer is " + result);
         break ans;
+      } else {
+        alert("Invalid input");
+        break ans;
       }
     }
   }

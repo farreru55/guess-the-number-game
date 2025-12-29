@@ -3,9 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the numbers</title>
+    <title>Guess the Number</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        ctp: {
+                            base: '#1e1e2e',
+                            mantle: '#181825',
+                            crust: '#11111b',
+                            surface0: '#313244',
+                            surface1: '#45475a',
+                            text: '#cdd6f4',
+                            subtext0: '#a6adc8',
+                            blue: '#89b4fa',
+                            green: '#a6e3a1',
+                            red: '#f38ba8',
+                            mauve: '#cba6f7',
+                            lavender: '#b4befe',
+                            overlay0: '#6c7086'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap');
+        
+        /* Smooth background gradient */
+        body {
+            background: radial-gradient(circle at top left, #1e1e2e, #11111b);
+        }
+        
+        /* Custom noise texture overlay */
+        .noise-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Ambient glows */
+        .glow-sphere {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(203, 166, 247, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Clean input */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
 </head>
-<body>
+<body class="text-ctp-text min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
+
+    <!-- Background Elements -->
+    <div class="noise-bg"></div>
+    <div class="glow-sphere top-0 left-1/4 animate-pulse-slow"></div>
+    <div class="glow-sphere bottom-0 right-1/4 animate-pulse-slow" style="animation-delay: 1.5s; background: radial-gradient(circle, rgba(137, 180, 250, 0.15) 0%, rgba(0, 0, 0, 0) 70%);"></div>
+
+    <!-- Main Card -->
+    <div class="relative w-full max-w-sm">
+        <!-- Glass Effect Backdrop -->
+        <div class="absolute inset-0 bg-ctp-mantle/60 backdrop-blur-xl rounded-3xl border border-ctp-surface0/50 shadow-2xl"></div>
+        
+        <div class="relative p-8 md:p-10 flex flex-col items-center animate-fade-in">
+            <!-- Header -->
+            <div class="text-center space-y-2 mb-10">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-ctp-surface0/50 text-ctp-mauve mb-4 shadow-inner ring-1 ring-white/5">
+                    <i class="ph ph-magic-wand text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-semibold tracking-tight text-white">Guess the Number</h1>
+                <p class="text-ctp-subtext0 text-sm font-medium">Pick a number between <span class="text-ctp-mauve">1</span> and <span class="text-ctp-mauve">10</span></p>
+            </div>
+
+            <!-- Game Area -->
+            <div id="game-area" class="w-full space-y-8">
+                
+                <!-- Input Group -->
+                <div class="relative group">
+                    <input type="number" id="guessInput" min="1" max="10" placeholder="?" 
+                        class="block w-full text-center font-mono text-5xl py-6 bg-transparent border-b-2 border-ctp-surface1 text-ctp-text placeholder-ctp-surface1 focus:border-ctp-mauve focus:outline-none transition-all duration-300 group-hover:border-ctp-overlay0">
+                    <!-- Decorative visualizer lines -->
+                    <div class="absolute bottom-0 left-0 w-full h-0.5 bg-ctp-mauve scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 ease-out origin-center"></div>
+                </div>
+
+                <!-- Action Button -->
+                <button id="guessBtn" 
+                    class="w-full relative group overflow-hidden bg-ctp-mauve hover:bg-ctp-mauve/90 text-ctp-base font-semibold py-4 rounded-xl transition-all duration-300 shadow-[0_0_20px_-5px_rgba(203,166,247,0.4)] hover:shadow-[0_0_25px_-5px_rgba(203,166,247,0.6)] transform hover:-translate-y-0.5 active:translate-y-0">
+                    <span class="relative z-10 flex items-center justify-center gap-2">
+                        Reveal Mystery
+                        <i class="ph ph-arrow-right"></i>
+                    </span>
+                </button>
+
+                <!-- Status Bar -->
+                <div class="flex items-center justify-between px-1">
+                    <div class="flex items-center gap-2 text-sm text-ctp-subtext0">
+                        <i class="ph ph-heart text-ctp-red"></i>
+                        <span>Lives left</span>
+                    </div>
+                    <div class="flex gap-1" id="lives-container">
+                        <!-- Lives generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback / Result Section -->
+            <div id="feedback" class="hidden w-full mt-6 pt-6 border-t border-ctp-surface0/50 text-center animate-fade-in">
+                <div id="feedbackIcon" class="text-4xl mb-3"></div>
+                <p id="feedbackText" class="text-lg font-medium mb-1"></p>
+                <p id="feedbackSub" class="text-sm text-ctp-subtext0 mb-6"></p>
+                
+                <button id="restartBtn" class="mx-auto flex items-center gap-2 text-sm font-medium text-ctp-mauve hover:text-ctp-text transition-colors px-4 py-2 rounded-lg hover:bg-ctp-surface0/50">
+                    <i class="ph ph-arrow-counter-clockwise"></i>
+                    Play Again
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="fixed bottom-6 text-xs text-ctp-surface1 font-mono">
+        press <span class="bg-ctp-surface0 px-1.5 py-0.5 rounded text-ctp-subtext0">Enter</span> to guess
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
